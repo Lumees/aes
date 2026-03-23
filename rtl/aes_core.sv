@@ -19,6 +19,12 @@
 // Both pipelines run continuously. The caller selects which output to use via
 // s_dir. Each pipeline produces m_valid NR+1 cycles after s_valid.
 //
+// NOTE: If an encrypt and decrypt block exit simultaneously (submitted
+// exactly PIPE_LAT cycles apart), the encrypt result takes priority and
+// the decrypt result is silently dropped. Callers should avoid interleaving
+// encrypt and decrypt submissions at intervals that collide at the output.
+// A future version may add output arbitration or a FIFO.
+//
 // Tag and direction are propagated through both pipelines so the output side
 // knows which result to forward.
 //

@@ -14,9 +14,11 @@
 // =============================================================================
 // Register map (32-bit aligned):
 //
-//  0x00  CTRL      [0]=start(W/self-clear) [1]=busy(RO) [2]=done(RO)
-//                  [3]=err(RO/sticky,clr-on-start) [5:4]=mode [6]=dir
-//                  [8]=key_expand(W/self-clear) [9]=iv_load(W/self-clear)
+//  0x00  CTRL      Write: [0]=start(self-clear) [8]=key_expand(self-clear)
+//                         [9]=iv_load(self-clear) [5:4]=mode [6]=dir
+//                  Read:  [0]=reg_busy [1]=done [2]=err(sticky)
+//                         [3]=pipeline-not-ready [4]=0
+//                         [7:5]=mode+dir
 //  0x04  STATUS    [0]=done [1]=busy [2]=key_ready [3]=iv_ready
 //  0x08  TAG       [7:0] transaction tag
 //  0x0C  VERSION   RO = IP_VERSION

@@ -165,10 +165,10 @@ Full UVM environment (11 files): agent, driver, monitor, scoreboard, coverage, s
 
 | Key Size | Tests | Result |
 |---|---|---|
-| AES-128 | 42 tests | **42/42 PASS** |
+| AES-128 | 64 tests | **64/64 PASS** |
 | AES-192 | 28 tests | **28/28 PASS** |
 | AES-256 | 28 tests | **28/28 PASS** |
-| **Total** | **98 tests** | **98/98 PASS** |
+| **Total** | **120 tests** | **120/120 PASS** |
 
 All tests run at 100 MHz via LiteX SoC + UARTBone bridge on Xilinx XC7A100T.
 

@@ -205,7 +205,7 @@ module aes_top #(
   assign m_valid = core_m_valid;
   assign m_data  = post_data;
   assign m_tag   = core_m_tag;
-  assign m_err   = core_valid_in && !key_ready;  // sticky via register in wrapper
+  assign m_err   = s_valid && !key_ready;  // fires when SW submits block before key expansion
 
   // ── CBC feedback update ───────────────────────────────────────────────────
   // CBC encrypt: cbc_prev ← ciphertext output of previous block
@@ -222,7 +222,7 @@ module aes_top #(
       // Use s_mode (current input), not meta_pipe[0].mode (registered previous cycle)
       if (core_valid_in && s_mode == CBC && s_dir == ENCRYPT)
         cbc_enc_busy <= 1'b1;
-      if (core_m_valid && meta_pipe[NR].mode == CBC)
+      if (core_m_valid && meta_pipe[NR].mode == CBC && meta_pipe[NR].dir == ENCRYPT)
         cbc_enc_busy <= 1'b0;
 
       // CBC-encrypt: update cbc_prev to new ciphertext after each encrypted block

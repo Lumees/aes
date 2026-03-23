@@ -73,6 +73,20 @@ module aes_key_expand #(
   endfunction
 
   // ---------------------------------------------------------------------------
+  // Key schedule: combinational next-word computation (Vivado/DC compatible)
+  // ---------------------------------------------------------------------------
+  logic [31:0] kexp_temp;
+  int          kexp_i_int;
+  always_comb begin
+    kexp_i_int = int'(idx);
+    kexp_temp  = (kexp_i_int > 0) ? W[kexp_i_int - 1] : '0;
+    if (kexp_i_int % NKW == 0 && kexp_i_int > 0)
+      kexp_temp = sub_word(rot_word(kexp_temp)) ^ {rcon(kexp_i_int / NKW), 24'h0};
+    else if (NKW > 6 && kexp_i_int % NKW == 4)
+      kexp_temp = sub_word(kexp_temp);
+  end
+
+  // ---------------------------------------------------------------------------
   // Key schedule FSM
   // ---------------------------------------------------------------------------
   always_ff @(posedge clk or negedge rst_n) begin
@@ -93,18 +107,7 @@ module aes_key_expand #(
       end
 
       if (busy) begin
-        automatic logic [31:0] temp;
-        automatic int          i_int;
-        i_int = int'(idx);
-
-        temp = W[i_int - 1];
-
-        if (i_int % NKW == 0)
-          temp = sub_word(rot_word(temp)) ^ {rcon(i_int / NKW), 24'h0};
-        else if (NKW > 6 && i_int % NKW == 4)
-          temp = sub_word(temp);
-
-        W[i_int] <= W[i_int - NKW] ^ temp;
+        W[kexp_i_int] <= W[kexp_i_int - NKW] ^ kexp_temp;
 
         if (idx == NW - 1) begin
           busy      <= 0;
