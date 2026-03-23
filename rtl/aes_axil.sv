@@ -260,7 +260,7 @@ module aes_axil #(
   always_comb begin
     s_axil_rdata = '0;
     unique case (rd_addr[7:2])
-      6'h00: s_axil_rdata = {22'h0, reg_ctrl[6:4], 1'b0,
+      6'h00: s_axil_rdata = {24'h0, reg_ctrl[6:4], 1'b0,
                               aes_s_ready ? 1'b0 : 1'b1,   // busy
                               reg_err, reg_done,
                               reg_busy};
