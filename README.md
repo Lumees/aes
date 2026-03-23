@@ -65,18 +65,18 @@ Verified in simulation (48/48 cocotb tests across two interfaces) and on Xilinx 
 ## Architecture
 
 ```
-                    ┌──────────────────────────────────────────────────┐
-                    │                    aes_top                        │
-                    │                                                    │
+                   ┌──────────────────────────────────────────────────┐
+                   │                    aes_top                       │
+                   │                                                  │
  s_key_in[N-1:0] ──┤──► aes_key_expand ──► round_keys[0..NR]          │
- s_key_expand     ──┤     (iterative FSM)                               │
-                    │                                                    │
+ s_key_expand    ──┤     (iterative FSM)                              │
+                   │                                                  │
  s_data[127:0]   ──┤──► mode_mux ──► aes_core ──► mode_demux ─────────┤──► m_data
- s_valid/s_ready ──┤     (ECB/CBC/    (NR-stage    (CBC/CTR            │    m_valid
- s_mode/s_dir    ──┤      CTR XOR)    pipeline)     XOR)               │    m_tag
- s_tag[7:0]      ──┤                                                    │    m_err
-                    │   Latency: NR+1 cycles (11/13/15 for 128/192/256)│
-                    └──────────────────────────────────────────────────┘
+ s_valid/s_ready ──┤     (ECB/CBC/    (NR-stage    (CBC/CTR           │    m_valid
+ s_mode/s_dir    ──┤      CTR XOR)    pipeline)     XOR)              │    m_tag
+ s_tag[7:0]      ──┤                                                  │    m_err
+                   │   Latency: NR+1 cycles (11/13/15 for 128/192/256)│
+                   └──────────────────────────────────────────────────┘
 ```
 
 **Key Expansion (`aes_key_expand`):** Iterative FSM generates all round keys from the initial cipher key. Supports 128/192/256-bit keys with correct Rcon schedule. Expansion takes NR+1 cycles; `key_ready` signals completion.
