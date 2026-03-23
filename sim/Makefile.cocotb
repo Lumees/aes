@@ -1,0 +1,79 @@
+# =============================================================================
+# AES IP - cocotb/Verilator Simulation Makefile
+# =============================================================================
+
+TOPLEVEL_LANG ?= verilog
+SIM           ?= verilator
+
+# ─── Default target: aes_top ──────────────────────────────────────────────────
+TOPLEVEL      ?= aes_top
+MODULE        ?= test_aes_top
+
+RTL_DIR   := $(realpath ../rtl)
+TB_DIR    := $(realpath ../tb/directed)
+MODEL_DIR := $(realpath ../model)
+
+# Compile-time key width (128 | 192 | 256)
+KEY_BITS ?= 128
+
+# Common RTL sources (package must come first)
+AES_CORE_SRCS := \
+    $(RTL_DIR)/aes_pkg.sv        \
+    $(RTL_DIR)/aes_key_expand.sv \
+    $(RTL_DIR)/aes_core.sv       \
+    $(RTL_DIR)/aes_top.sv
+
+# Select RTL sources and test module based on TOPLEVEL
+ifeq ($(TOPLEVEL), aes_top)
+    VERILOG_SOURCES ?= $(AES_CORE_SRCS)
+    MODULE          ?= test_aes_top
+else ifeq ($(TOPLEVEL), aes_axil)
+    VERILOG_SOURCES ?= $(AES_CORE_SRCS) $(RTL_DIR)/aes_axil.sv
+    MODULE          ?= test_aes_axil
+else ifeq ($(TOPLEVEL), aes_wb)
+    VERILOG_SOURCES ?= $(AES_CORE_SRCS) $(RTL_DIR)/aes_wb.sv
+    MODULE          ?= test_aes_wb
+else ifeq ($(TOPLEVEL), aes_axis)
+    VERILOG_SOURCES ?= $(AES_CORE_SRCS) $(RTL_DIR)/aes_axis.sv
+    MODULE          ?= test_aes_axis
+endif
+
+# Verilator extra args
+ifeq ($(SIM), verilator)
+    COMPILE_ARGS += --sv \
+                    +define+AES_KEY_BITS=$(KEY_BITS) \
+                    -Wno-WIDTHEXPAND -Wno-WIDTHTRUNC \
+                    -Wno-UNUSED -Wno-CASEINCOMPLETE \
+                    -Wno-UNOPTFLAT -Wno-ASCRANGE
+    SIM_ARGS     += --vcd aes_sim.vcd
+    EXTRA_ARGS   += --trace --trace-structs
+endif
+
+# Pass KEY_BITS to Python tests
+export KEY_BITS
+export PYTHONPATH := $(MODEL_DIR):$(TB_DIR):$(PYTHONPATH)
+
+# cocotb auto-generated Makefile
+include $(shell cocotb-config --makefiles)/Makefile.sim
+
+# ─── Convenience aliases ──────────────────────────────────────────────────────
+.PHONY: sim-top sim-axil sim-wb sim-axis sim-all
+
+sim-top:
+	$(MAKE) -f Makefile.cocotb TOPLEVEL=aes_top  MODULE=test_aes_top  \
+	    SIM_BUILD=sim_build_top   KEY_BITS=$(KEY_BITS)
+
+sim-axil:
+	$(MAKE) -f Makefile.cocotb TOPLEVEL=aes_axil MODULE=test_aes_axil \
+	    SIM_BUILD=sim_build_axil  KEY_BITS=$(KEY_BITS)
+
+sim-wb:
+	$(MAKE) -f Makefile.cocotb TOPLEVEL=aes_wb   MODULE=test_aes_wb   \
+	    SIM_BUILD=sim_build_wb    KEY_BITS=$(KEY_BITS)
+
+sim-axis:
+	$(MAKE) -f Makefile.cocotb TOPLEVEL=aes_axis MODULE=test_aes_axis \
+	    SIM_BUILD=sim_build_axis  KEY_BITS=$(KEY_BITS)
+
+sim-all: sim-top sim-axil
+	@echo "=== AES cocotb simulation complete ==="
